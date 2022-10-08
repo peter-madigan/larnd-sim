@@ -48,11 +48,15 @@ def get_active_op_channel(light_incidence):
         light_incidence(array): shape `(ntracks, ndet)`, containing first hit time and number of photons on each detector
 
     Returns:
-        array: shape `(ndet_active,)` op detector index of each active channel (`int`)
+        array: shape `(ndet_active,)` op detector index of each channel within an active trigger group (`int`)
     """
     mask = light_incidence['n_photons_det'] > 0
+    mask = mask.reshape(-1, mask.shape[1]//OP_CHANNEL_PER_TRIG, OP_CHANNEL_PER_TRIG)    
     if np.any(mask):
-        return cp.array(np.where(np.any(mask, axis=0))[0], dtype='i4')
+        active_group = np.any(mask, axis=-1, keepdims=True)
+        active_group = np.broadcast_to(active_group, mask.shape)
+        active_group = active_group.reshape(light_incidence.shape)
+        return cp.array(np.where(np.any(active_group, axis=0))[0], dtype='i4')
     return cp.empty((0,), dtype='i4')
     
 @cuda.jit

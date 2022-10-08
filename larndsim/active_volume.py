@@ -30,5 +30,6 @@ def select_active_volume(track_seg, tpc_borders):
                    & (track_seg['y_start'] < tpc_bound[1,1])
                    & (track_seg['z_start'] > tpc_bound[2,0])
                    & (track_seg['z_start'] < tpc_bound[2,1])))
+    tpc_mask = tpc_mask & (track_seg['dE'] > 0)
 
     return xp.nonzero(tpc_mask)[0]
